@@ -1,0 +1,14 @@
+# Build artifacts
+*.o
+mxfp4_matmul
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
