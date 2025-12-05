@@ -57,11 +57,13 @@ void MXFP4::encode_block(const float* input, MXFP4Block& block) {
     // We have 3 bits for magnitude (0-7), so divide max by 7
     float scale_factor = (max_abs > 0) ? (max_abs / 7.0f) : 1.0f;
     
-    // Store scale as 8-bit exponent (simplified: just use bits of float)
-    // For simplicity, we'll store the scale_factor directly as a packed representation
-    uint32_t scale_bits;
-    memcpy(&scale_bits, &scale_factor, sizeof(float));
-    block.scale = (scale_bits >> 23) & 0xFF;  // Use exponent bits
+    // Store scale_factor using a simple quantization scheme
+    // Scale to 0-255 range for 8-bit storage
+    float log_scale = (scale_factor > 0) ? std::log2(scale_factor) : -10.0f;
+    // Map to 8-bit range: log scale typically in range [-10, 10]
+    int quantized_scale = static_cast<int>((log_scale + 10.0f) * 12.75f);
+    quantized_scale = std::min(255, std::max(0, quantized_scale));
+    block.scale = static_cast<uint8_t>(quantized_scale);
     
     // Initialize data
     memset(block.data, 0, sizeof(block.data));
@@ -74,12 +76,9 @@ void MXFP4::encode_block(const float* input, MXFP4Block& block) {
 }
 
 void MXFP4::decode_block(const MXFP4Block& block, float* output) {
-    // Reconstruct scale factor from stored exponent
-    uint32_t scale_bits = (static_cast<uint32_t>(block.scale) << 23) | 0x3F800000;
-    float scale_factor;
-    memcpy(&scale_factor, &scale_bits, sizeof(float));
-    scale_factor = scale_factor - 1.0f;  // Adjust for bias
-    if (scale_factor <= 0) scale_factor = 1.0f;
+    // Reconstruct scale factor from stored value
+    float log_scale = (static_cast<float>(block.scale) / 12.75f) - 10.0f;
+    float scale_factor = std::exp2(log_scale);
     
     // Decode each value
     for (int i = 0; i < BLOCK_SIZE; i++) {

@@ -262,12 +262,14 @@ void* matmul_optimized_worker(void* arg) {
                 sum_vec = _mm256_fmadd_ps(a_vec, b_vec, sum_vec);
             }
             
-            // Horizontal sum
-            float temp[8];
-            _mm256_storeu_ps(temp, sum_vec);
-            for (int idx = 0; idx < 8; idx++) {
-                sum += temp[idx];
-            }
+            // Horizontal sum using hadd
+            __m256 hsum = _mm256_hadd_ps(sum_vec, sum_vec);
+            hsum = _mm256_hadd_ps(hsum, hsum);
+            // Add upper and lower 128-bit lanes
+            __m128 sum_high = _mm256_extractf128_ps(hsum, 1);
+            __m128 sum_low = _mm256_castps256_ps128(hsum);
+            __m128 sum_result = _mm_add_ps(sum_low, sum_high);
+            sum += _mm_cvtss_f32(sum_result);
 #endif
             
             // Process remaining elements
