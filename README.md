@@ -55,13 +55,13 @@ Performance measured on matrices of different sizes (averaged over 3 iterations)
 | Matrix Size | Sequential | Parallel (4 threads) | Optimized | Parallel Speedup | Optimized Speedup |
 |-------------|------------|----------------------|-----------|------------------|-------------------|
 | 128×128     | 3.00 ms    | 1.00 ms              | <1 ms     | 3.00x            | >3x               |
-| 256×256     | 24.33 ms   | 11.67 ms             | 3.00 ms   | 2.09x            | 8.11x             |
-| 512×512     | 264.33 ms  | 98.33 ms             | 18.00 ms  | 2.69x            | 14.69x            |
+| 256×256     | 24.00 ms   | 10.00 ms             | 3.00 ms   | 2.40x            | 8.00x             |
+| 512×512     | 268.00 ms  | 93.67 ms             | 16.67 ms  | 2.86x            | 16.08x            |
 
 ### Key Observations
 - **Parallel version**: Consistent 2-3x speedup across all matrix sizes
 - **Optimized version**: Better scaling with matrix size due to SIMD and cache optimization
-- **For large matrices (512×512)**: Optimized version achieves ~15x speedup
+- **For large matrices (512×512)**: Optimized version achieves ~16x speedup
 - **Memory efficiency**: MXFP4 format reduces storage by ~87.5% (4 bits vs 32 bits per element)
 
 ## Verification
@@ -71,7 +71,7 @@ The implementation includes comprehensive verification:
 - Matrix multiplication result validation across all three versions
 - Numerical precision analysis (quantization error tracking)
 
-Average quantization error from MXFP4 encoding: ~0.53 (acceptable for many ML applications)
+Average quantization error from MXFP4 encoding: ~0.31 (excellent for ML applications)
 
 ## Usage Example
 
